@@ -5,7 +5,10 @@ import { sendMessage } from "@/lib/telegram";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const querySecret = req.nextUrl.searchParams.get("secret");
+  const validSecret = process.env.CRON_SECRET;
+
+  if (authHeader !== `Bearer ${validSecret}` && querySecret !== validSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
