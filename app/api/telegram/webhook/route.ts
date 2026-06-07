@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initDb, saveReflection } from "@/lib/db";
+import { initDb, saveReflection, getReflectionsSince } from "@/lib/db";
 import { sendMessage, TelegramUpdate } from "@/lib/telegram";
+import { generateWeeklySummary } from "@/lib/claude";
 
 const OWNER_CHAT_ID = process.env.TELEGRAM_CHAT_ID!;
 
@@ -13,6 +14,7 @@ Every Wednesday at 3PM, I'll send you a summary of your week's reflections.
 *Commands:*
 /help — show this message
 /stats — how many entries you have
+/summary — get your weekly summary now
 
 Just type freely, e.g.:
 _"Proud that I stayed patient with a difficult student today"_`;
@@ -51,6 +53,19 @@ export async function POST(req: NextRequest) {
       chatId,
       `You have *${all.length}* reflection${all.length === 1 ? "" : "s"} logged so far. Keep going! 🌟`
     );
+    return NextResponse.json({ ok: true });
+  }
+
+  if (text === "/summary") {
+    await sendMessage(chatId, "Generating your summary, give me a moment... ⏳");
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const reflections = await getReflectionsSince(sevenDaysAgo);
+    const summary = await generateWeeklySummary(
+      reflections as { content: string; created_at: string }[]
+    );
+    const header = `*Your Weekly Reflection* 🌿\n_Week of ${sevenDaysAgo.toLocaleDateString("en-SG", { day: "numeric", month: "long" })} – ${new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })}_\n\n`;
+    await sendMessage(chatId, header + summary);
     return NextResponse.json({ ok: true });
   }
 
