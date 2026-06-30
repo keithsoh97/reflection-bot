@@ -6,6 +6,9 @@ import {
   setPendingEmotion,
   getPendingEmotion,
   clearPendingEmotion,
+  setPendingFollowup,
+  getPendingFollowup,
+  clearPendingFollowup,
 } from "@/lib/db";
 import {
   sendMessage,
@@ -99,15 +102,18 @@ export async function POST(req: NextRequest) {
 
         await sendMessage(chatId, `_${node.label}_ — ${node.reflection}.\n\n${reflection}`);
 
-        // Offer to log this as a reflection
+        // Store context for possible follow-up
+        await setPendingFollowup(chatId, original, node.label);
+
         await sendMessageWithButtons(
           chatId,
-          "Would you like to save this as today's reflection?",
+          "What would you like to do?",
           [
             [
-              { text: "Yes, save it", callback_data: `save:${encodeURIComponent(original)}` },
-              { text: "No thanks", callback_data: "save:skip" },
+              { text: "💬 Share more", callback_data: "followup:prompt" },
+              { text: "✅ Save & done", callback_data: `save:${encodeURIComponent(original)}` },
             ],
+            [{ text: "Skip", callback_data: "save:skip" }],
           ]
         );
         return NextResponse.json({ ok: true });
@@ -124,16 +130,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    // User wants to share more before saving
+    if (data === "followup:prompt") {
+      await sendMessage(
+        chatId,
+        "Go ahead — share whatever's on your mind. I'm listening. 💙"
+      );
+      return NextResponse.json({ ok: true });
+    }
+
     // Save reflection after emotion flow
     if (data.startsWith("save:")) {
+      await clearPendingFollowup(chatId);
       const payload = data.slice(5);
       if (payload === "skip") {
         await sendMessage(chatId, "No worries. I'm here whenever you want to share. 🌿");
         return NextResponse.json({ ok: true });
       }
       await initDb();
-      const text = decodeURIComponent(payload);
-      const entry = await saveReflection(text);
+      const textToSave = decodeURIComponent(payload);
+      const entry = await saveReflection(textToSave);
       const date = new Date(entry.created_at).toLocaleDateString("en-SG", {
         weekday: "long",
         day: "numeric",
@@ -203,6 +219,25 @@ export async function POST(req: NextRequest) {
 
   if (text.startsWith("/")) {
     await sendMessage(chatId, "Unknown command. Try /help.");
+    return NextResponse.json({ ok: true });
+  }
+
+  // Check if user is in follow-up mode (typed after tapping "Share more")
+  const followup = await getPendingFollowup(chatId);
+  if (followup) {
+    await clearPendingFollowup(chatId);
+    const combined = `[${followup.emotion_label}] ${followup.original_message}\n\nMore context: ${text}`;
+    const entry = await saveReflection(combined);
+    const date = new Date(entry.created_at).toLocaleDateString("en-SG", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    await sendMessage(
+      chatId,
+      `✅ Saved on *${date}*.\n\nThank you for sharing more — it takes courage to put words to what you feel. 💛`
+    );
     return NextResponse.json({ ok: true });
   }
 

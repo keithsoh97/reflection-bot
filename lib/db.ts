@@ -17,6 +17,14 @@ export async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS pending_followups (
+      chat_id TEXT PRIMARY KEY,
+      original_message TEXT NOT NULL,
+      emotion_label TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }
 
 export async function setPendingEmotion(chatId: string, message: string) {
@@ -34,6 +42,34 @@ export async function getPendingEmotion(chatId: string): Promise<string | null> 
 
 export async function clearPendingEmotion(chatId: string) {
   await sql`DELETE FROM pending_emotions WHERE chat_id = ${chatId}`;
+}
+
+export async function setPendingFollowup(
+  chatId: string,
+  originalMessage: string,
+  emotionLabel: string
+) {
+  await sql`
+    INSERT INTO pending_followups (chat_id, original_message, emotion_label)
+    VALUES (${chatId}, ${originalMessage}, ${emotionLabel})
+    ON CONFLICT (chat_id) DO UPDATE
+      SET original_message = ${originalMessage},
+          emotion_label = ${emotionLabel},
+          created_at = NOW()
+  `;
+}
+
+export async function getPendingFollowup(
+  chatId: string
+): Promise<{ original_message: string; emotion_label: string } | null> {
+  const rows = await sql`
+    SELECT original_message, emotion_label FROM pending_followups WHERE chat_id = ${chatId}
+  `;
+  return (rows[0] as { original_message: string; emotion_label: string }) ?? null;
+}
+
+export async function clearPendingFollowup(chatId: string) {
+  await sql`DELETE FROM pending_followups WHERE chat_id = ${chatId}`;
 }
 
 export async function saveReflection(content: string) {
