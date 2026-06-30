@@ -1,77 +1,213 @@
-// Plutchik-based emotion wheel tree
-// callback_data format: "emo:<path>" where path is colon-joined slugs
-// e.g. "emo:joy" → "emo:joy:serenity" | "emo:joy:joy" | "emo:joy:ecstasy"
+// Emotion wheel based on the 6-primary colour wheel (Happy / Sad / Angry / Fearful / Disgusted / Surprised)
+// 3 levels: primary → secondary → tertiary (leaf)
+// callback_data format: "emo:<slug1>:<slug2>:<slug3>"
 
 export type EmotionNode = {
   label: string;
   slug: string;
-  reflection?: string; // shown when this is a leaf — what to say back
+  reflection?: string; // only on leaves
   children?: EmotionNode[];
 };
 
 export const EMOTION_WHEEL: EmotionNode[] = [
   {
-    label: "😊 Joy", slug: "joy",
+    label: "😊 Happy", slug: "happy",
     children: [
-      { label: "Serenity", slug: "serenity", reflection: "a quiet, peaceful contentment" },
-      { label: "Joy", slug: "joy2", reflection: "genuine happiness and warmth" },
-      { label: "Ecstasy", slug: "ecstasy", reflection: "an intense, overwhelming elation" },
+      {
+        label: "Optimistic", slug: "optimistic",
+        children: [
+          { label: "Hopeful", slug: "hopeful", reflection: "a gentle, forward-looking hope" },
+          { label: "Inspired", slug: "inspired", reflection: "a spark of inspiration and possibility" },
+        ],
+      },
+      {
+        label: "Peaceful", slug: "peaceful",
+        children: [
+          { label: "Loved", slug: "loved", reflection: "a warm, deep sense of being loved" },
+          { label: "Thankful", slug: "thankful", reflection: "a quiet, heartfelt gratitude" },
+        ],
+      },
+      {
+        label: "Powerful", slug: "powerful",
+        children: [
+          { label: "Courageous", slug: "courageous", reflection: "a bold, grounded courage" },
+          { label: "Creative", slug: "creative", reflection: "an expansive, energised creativity" },
+        ],
+      },
+      {
+        label: "Excited", slug: "excited",
+        children: [
+          { label: "Eager", slug: "eager", reflection: "a keen, restless eagerness" },
+          { label: "Energetic", slug: "energetic", reflection: "a vibrant, buzzing energy" },
+        ],
+      },
+      {
+        label: "Proud", slug: "proud",
+        children: [
+          { label: "Successful", slug: "successful", reflection: "a satisfying sense of achievement" },
+          { label: "Confident", slug: "confident", reflection: "a steady, solid self-assurance" },
+        ],
+      },
     ],
   },
   {
-    label: "😟 Sadness", slug: "sadness",
+    label: "😢 Sad", slug: "sad",
     children: [
-      { label: "Pensiveness", slug: "pensiveness", reflection: "a gentle, reflective melancholy" },
-      { label: "Sadness", slug: "sadness2", reflection: "a heavy, deep sorrow" },
-      { label: "Grief", slug: "grief", reflection: "profound loss and heartache" },
+      {
+        label: "Lonely", slug: "lonely",
+        children: [
+          { label: "Isolated", slug: "isolated", reflection: "a painful sense of being cut off" },
+          { label: "Abandoned", slug: "abandoned", reflection: "a deep ache of feeling left behind" },
+        ],
+      },
+      {
+        label: "Vulnerable", slug: "vulnerable",
+        children: [
+          { label: "Fragile", slug: "fragile", reflection: "a tender, exposed fragility" },
+          { label: "Victimised", slug: "victimised", reflection: "a raw feeling of being wronged" },
+        ],
+      },
+      {
+        label: "Despair", slug: "despair",
+        children: [
+          { label: "Grief", slug: "grief", reflection: "a profound, heavy grief" },
+          { label: "Powerless", slug: "powerless", reflection: "a draining sense of helplessness" },
+        ],
+      },
+      {
+        label: "Guilty", slug: "guilty",
+        children: [
+          { label: "Ashamed", slug: "ashamed", reflection: "a burning shame turned inward" },
+          { label: "Remorseful", slug: "remorseful", reflection: "a sincere, aching remorse" },
+        ],
+      },
+      {
+        label: "Hurt", slug: "hurt",
+        children: [
+          { label: "Disappointed", slug: "disappointed", reflection: "a hollow disappointment in how things went" },
+          { label: "Wounded", slug: "wounded", reflection: "a deep, personal sting of hurt" },
+        ],
+      },
     ],
   },
   {
-    label: "😠 Anger", slug: "anger",
+    label: "😠 Angry", slug: "angry",
     children: [
-      { label: "Annoyance", slug: "annoyance", reflection: "a nagging irritation under the surface" },
-      { label: "Anger", slug: "anger2", reflection: "a sharp, burning frustration" },
-      { label: "Rage", slug: "rage", reflection: "an intense, overwhelming fury" },
+      {
+        label: "Humiliated", slug: "humiliated",
+        children: [
+          { label: "Disrespected", slug: "disrespected", reflection: "a sharp sting of being disrespected" },
+          { label: "Ridiculed", slug: "ridiculed", reflection: "a burning feeling of being mocked" },
+        ],
+      },
+      {
+        label: "Bitter", slug: "bitter",
+        children: [
+          { label: "Indignant", slug: "indignant", reflection: "a righteous, simmering indignation" },
+          { label: "Violated", slug: "violated", reflection: "a sense that something sacred was crossed" },
+        ],
+      },
+      {
+        label: "Frustrated", slug: "frustrated",
+        children: [
+          { label: "Annoyed", slug: "annoyed", reflection: "a nagging, persistent irritation" },
+          { label: "Infuriated", slug: "infuriated", reflection: "a fierce, white-hot fury" },
+        ],
+      },
+      {
+        label: "Critical", slug: "critical",
+        children: [
+          { label: "Sceptical", slug: "sceptical", reflection: "a guarded, doubtful wariness" },
+          { label: "Dismissive", slug: "dismissive", reflection: "a cold, shutting-down feeling" },
+        ],
+      },
+      {
+        label: "Distant", slug: "distant",
+        children: [
+          { label: "Withdrawn", slug: "withdrawn", reflection: "a quiet pulling-away from the world" },
+          { label: "Numb", slug: "numb", reflection: "a hollow, muted numbness" },
+        ],
+      },
     ],
   },
   {
-    label: "😨 Fear", slug: "fear",
+    label: "😨 Fearful", slug: "fearful",
     children: [
-      { label: "Apprehension", slug: "apprehension", reflection: "a quiet unease about what's ahead" },
-      { label: "Fear", slug: "fear2", reflection: "a strong sense of dread or threat" },
-      { label: "Terror", slug: "terror", reflection: "an overwhelming, paralyzing fear" },
+      {
+        label: "Threatened", slug: "threatened",
+        children: [
+          { label: "Nervous", slug: "nervous", reflection: "a jittery, on-edge nervousness" },
+          { label: "Exposed", slug: "exposed", reflection: "a vulnerable feeling of being seen and unsafe" },
+        ],
+      },
+      {
+        label: "Rejected", slug: "rejected",
+        children: [
+          { label: "Excluded", slug: "excluded", reflection: "a painful sense of being left out" },
+          { label: "Persecuted", slug: "persecuted", reflection: "a heavy feeling of being unfairly targeted" },
+        ],
+      },
+      {
+        label: "Weak", slug: "weak",
+        children: [
+          { label: "Worthless", slug: "worthless", reflection: "a crushing sense of not being enough" },
+          { label: "Insignificant", slug: "insignificant", reflection: "a small, invisible kind of hurt" },
+        ],
+      },
+      {
+        label: "Insecure", slug: "insecure",
+        children: [
+          { label: "Inadequate", slug: "inadequate", reflection: "a gnawing doubt in your own capacity" },
+          { label: "Inferior", slug: "inferior", reflection: "a painful comparison that leaves you feeling less-than" },
+        ],
+      },
+      {
+        label: "Anxious", slug: "anxious",
+        children: [
+          { label: "Overwhelmed", slug: "overwhelmed", reflection: "a flooding, too-much-at-once overwhelm" },
+          { label: "Worried", slug: "worried", reflection: "a restless, circling worry" },
+        ],
+      },
     ],
   },
   {
-    label: "🤢 Disgust", slug: "disgust",
+    label: "🤢 Disgusted", slug: "disgusted",
     children: [
-      { label: "Boredom", slug: "boredom", reflection: "a dull, disengaged flatness" },
-      { label: "Disgust", slug: "disgust2", reflection: "a strong sense of repulsion or wrongness" },
-      { label: "Loathing", slug: "loathing", reflection: "a deep, visceral aversion" },
-    ],
-  },
-  {
-    label: "😲 Surprise", slug: "surprise",
-    children: [
-      { label: "Distraction", slug: "distraction", reflection: "feeling caught off-guard or scattered" },
-      { label: "Surprise", slug: "surprise2", reflection: "a sudden jolt of the unexpected" },
-      { label: "Amazement", slug: "amazement", reflection: "stunned awe at something remarkable" },
-    ],
-  },
-  {
-    label: "🤝 Trust", slug: "trust",
-    children: [
-      { label: "Acceptance", slug: "acceptance", reflection: "a gentle openness and okayness" },
-      { label: "Trust", slug: "trust2", reflection: "a solid sense of safety and confidence" },
-      { label: "Admiration", slug: "admiration", reflection: "deep appreciation and respect" },
-    ],
-  },
-  {
-    label: "🌱 Anticipation", slug: "anticipation",
-    children: [
-      { label: "Interest", slug: "interest", reflection: "a curious, engaged pull toward something" },
-      { label: "Anticipation", slug: "anticipation2", reflection: "an eager, forward-leaning energy" },
-      { label: "Vigilance", slug: "vigilance", reflection: "a tense, alert readiness" },
+      {
+        label: "Repelled", slug: "repelled",
+        children: [
+          { label: "Horrified", slug: "horrified", reflection: "a visceral, shocked horror" },
+          { label: "Hesitant", slug: "hesitant", reflection: "a reluctant, holding-back unease" },
+        ],
+      },
+      {
+        label: "Awful", slug: "awful",
+        children: [
+          { label: "Nauseated", slug: "nauseated", reflection: "a gut-turning, sickening feeling" },
+          { label: "Detestable", slug: "detestable", reflection: "a deep revulsion at something" },
+        ],
+      },
+      {
+        label: "Disapproving", slug: "disapproving",
+        children: [
+          { label: "Judgemental", slug: "judgemental", reflection: "a sharp, critical inner verdict" },
+          { label: "Embarrassed", slug: "embarrassed", reflection: "a hot-cheeked, cringing embarrassment" },
+        ],
+      },
+      {
+        label: "Disenchanted", slug: "disenchanted",
+        children: [
+          { label: "Appalled", slug: "appalled", reflection: "a stunned disbelief that something could happen" },
+          { label: "Revolted", slug: "revolted", reflection: "a strong, recoiling revulsion" },
+        ],
+      },
+      {
+        label: "Startled", slug: "startled",
+        children: [
+          { label: "Shocked", slug: "shocked", reflection: "a jolting, can't-believe-it shock" },
+          { label: "Dismayed", slug: "dismayed", reflection: "a sinking, deflating dismay" },
+        ],
+      },
     ],
   },
 ];
@@ -102,7 +238,6 @@ export function childButtons(path: string[], node: EmotionNode) {
   }));
 }
 
-// chunk buttons into rows of 2
 export function toRows<T>(items: T[], perRow = 2): T[][] {
   const rows: T[][] = [];
   for (let i = 0; i < items.length; i += perRow) {
