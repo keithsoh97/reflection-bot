@@ -2,6 +2,42 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Returns true if the message is expressing an emotional state (not just logging a fact/achievement)
+export async function detectsEmotion(text: string): Promise<boolean> {
+  const msg = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 10,
+    messages: [
+      {
+        role: "user",
+        content: `Does this message express an emotional feeling or inner state? Reply only "yes" or "no".\n\nMessage: "${text}"`,
+      },
+    ],
+  });
+  const block = msg.content[0];
+  const answer = block.type === "text" ? block.text.trim().toLowerCase() : "";
+  return answer.startsWith("yes");
+}
+
+export async function reflectEmotion(
+  originalMessage: string,
+  emotionLabel: string,
+  emotionReflection: string
+): Promise<string> {
+  const msg = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 180,
+    messages: [
+      {
+        role: "user",
+        content: `You are a warm, empathetic companion. The user shared this message: "${originalMessage}"\n\nThey've identified what they're feeling as: ${emotionLabel} — described as "${emotionReflection}".\n\nWrite 2–3 sentences that:\n1. Gently validate and name what they're feeling\n2. Acknowledge something specific from their message\n3. End with a short, open question that invites them to go deeper — not generic\n\nTone: like a caring friend, not a therapist. Plain text only.`,
+      },
+    ],
+  });
+  const block = msg.content[0];
+  return block.type === "text" ? block.text : "Thank you for sharing that with me.";
+}
+
 type Reflection = { content: string; created_at: string };
 
 export async function generateWeeklySummary(
