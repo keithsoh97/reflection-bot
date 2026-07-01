@@ -100,20 +100,17 @@ export async function POST(req: NextRequest) {
           node.reflection ?? node.label
         );
 
-        await sendMessage(chatId, `_${node.label}_ — ${node.reflection}.\n\n${reflection}`);
-
-        // Store context for possible follow-up
         await setPendingFollowup(chatId, original, node.label);
 
         await sendMessageWithButtons(
           chatId,
-          "What would you like to do?",
+          `_${node.label}_ — ${node.reflection}.\n\n${reflection}`,
           [
             [
               { text: "💬 Share more", callback_data: "followup:prompt" },
               { text: "✅ Save & done", callback_data: `save:${encodeURIComponent(original)}` },
             ],
-            [{ text: "Skip", callback_data: "save:skip" }],
+            [{ text: "Skip for now", callback_data: "save:skip" }],
           ]
         );
         return NextResponse.json({ ok: true });
